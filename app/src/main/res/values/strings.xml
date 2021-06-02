@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TestApp</string>
+    <string name="ok">OK</string>
+    <string name="storage_read_write_permissions">Read Permission Required</string>
+</resources>
