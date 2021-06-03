@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.testapp.adapters.FileAdapter;
@@ -38,7 +39,7 @@ import static android.os.Build.VERSION.SDK_INT;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private Map<Integer, PermissionCallback> permissionCallbackMap = new HashMap<>();
-    private Button btnImages, btnAudio, btnDocuments;
+    private Button btnImages, btnAudio, btnVideo, btnDocuments;
     private RecyclerView recyclerView;
     private FileAdapter adapter;
     private List<File> fileList;
@@ -58,10 +59,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fileList = new ArrayList<>();
         btnImages = findViewById(R.id.btn_images);
         btnAudio = findViewById(R.id.btn_audio);
+        btnVideo = findViewById(R.id.btn_video);
         btnDocuments = findViewById(R.id.btn_docs);
 
         btnImages.setOnClickListener(this);
         btnAudio.setOnClickListener(this);
+        btnVideo.setOnClickListener(this);
         btnDocuments.setOnClickListener(this);
 
         // initialize recyclerview
@@ -83,15 +86,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (id) {
             case R.id.btn_images:
                 fileList = getData("Images");
-                if (fileList != null && !fileList.isEmpty())
+                if (!fileList.isEmpty())
                     adapter.updateData(fileList);
-
+                else
+                    Toast.makeText(this, "No images found", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.btn_audio:
-                adapter.updateData(getData("Audio"));
+                fileList = getData("Audios");
+                if (!fileList.isEmpty())
+                    adapter.updateData(fileList);
+                else
+                    Toast.makeText(this, "No audio files found", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.btn_video:
+                fileList = getData("Videos");
+                if (!fileList.isEmpty())
+                    adapter.updateData(fileList);
+                else
+                    Toast.makeText(this, "No video files found", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.btn_docs:
-                adapter.updateData(getData("Documents"));
+                fileList = getData("Documents");
+                if (!fileList.isEmpty())
+                    adapter.updateData(fileList);
+                else
+                    Toast.makeText(this, "No documents found", Toast.LENGTH_SHORT).show();
                 break;
             default:
                 break;
@@ -139,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             FileSizeColumn = MediaStore.Images.ImageColumns.SIZE;
             whereClause = MediaStore.Images.ImageColumns.DATA + " like ? ";
 
-        } else if (type.equals("Audio")) {  //moduleTypes[1] = "Audios"
+        } else if (type.equals("Audios")) {  //moduleTypes[1] = "Audios"
             contentURI = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
             DisplayNameColumn = MediaStore.Audio.AudioColumns.DISPLAY_NAME;
             DataColumn = MediaStore.Audio.AudioColumns.DATA;
@@ -147,6 +166,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             DisplayBucketName = MediaStore.Audio.AudioColumns.BUCKET_DISPLAY_NAME;
             FileSizeColumn = MediaStore.Audio.AudioColumns.SIZE;
             whereClause = MediaStore.Audio.AudioColumns.DATA + " like ? ";
+        }
+        else if (type.equals("Videos")) {  //moduleTypes[1] = "Audios"
+            contentURI = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+            DisplayNameColumn = MediaStore.Video.VideoColumns.DISPLAY_NAME;
+            DataColumn = MediaStore.Video.VideoColumns.DATA;
+            MimeTypeColumn = MediaStore.Video.VideoColumns.MIME_TYPE;
+            DisplayBucketName = MediaStore.Video.VideoColumns.BUCKET_DISPLAY_NAME;
+            FileSizeColumn = MediaStore.Video.VideoColumns.SIZE;
+            whereClause = MediaStore.Video.VideoColumns.DATA + " like ? ";
         }
 
         projection = new String[]{DataColumn, DisplayNameColumn, FileSizeColumn};
@@ -167,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 do {
                     File file = new File();
 
-                    if (type.equals("Document")) {
+                    if (type.equals("Documents")) {
                         String filePath = cursor.getString(
                                 cursor.getColumnIndexOrThrow(
                                         MediaStore.Images.Media.DATA

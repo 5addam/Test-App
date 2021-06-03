@@ -10,27 +10,37 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginVertical="10dp"
         android:gravity="center_horizontal"
-        android:layout_marginVertical="10dp">
+        android:orientation="vertical">
+
         <Button
             android:id="@+id/btn_images"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="10dp"
-            android:text="Images"/>
+            android:text="Images" />
+
         <Button
             android:id="@+id/btn_audio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Audio"
-            android:layout_marginHorizontal="10dp"/>
+            android:layout_marginHorizontal="10dp"
+            android:text="Audio" />
+
+        <Button
+            android:id="@+id/btn_video"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+            android:text="Videos" />
+
         <Button
             android:id="@+id/btn_docs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Documents"
-            android:layout_marginHorizontal="10dp"/>
+            android:layout_marginHorizontal="10dp"
+            android:text="Documents" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -39,9 +49,7 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingBottom="10dp"
-        tools:listitem="@layout/file_item"/>
-
-
+        tools:listitem="@layout/file_item" />
 
 
 </LinearLayout>
