@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -22,14 +24,15 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.testapp.adapters.FileAdapter;
-import com.testapp.models.File;
+import com.testapp.models.StorageFile;
 import com.testapp.utils.PermissionCallback;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,12 +40,12 @@ import java.util.Map;
 
 import static android.os.Build.VERSION.SDK_INT;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, FileAdapter.OnItemClickListener {
     private Map<Integer, PermissionCallback> permissionCallbackMap = new HashMap<>();
     private Button btnImages, btnAudio, btnVideo, btnDocuments;
     private RecyclerView recyclerView;
     private FileAdapter adapter;
-    private List<File> fileList;
+    private List<StorageFile> storageFileList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initUI() {
 
-        fileList = new ArrayList<>();
+        storageFileList = new ArrayList<>();
         btnImages = findViewById(R.id.btn_images);
         btnAudio = findViewById(R.id.btn_audio);
         btnVideo = findViewById(R.id.btn_video);
@@ -75,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.hasFixedSize();
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new FileAdapter();
+        adapter = new FileAdapter(this);
         recyclerView.setAdapter(adapter);
     }
 
@@ -85,30 +88,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         requestStoragePermission();
         switch (id) {
             case R.id.btn_images:
-                fileList = getData("Images");
-                if (!fileList.isEmpty())
-                    adapter.updateData(fileList);
+                storageFileList = getData("Images");
+                if (!storageFileList.isEmpty())
+                    adapter.updateData(storageFileList);
                 else
                     Toast.makeText(this, "No images found", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.btn_audio:
-                fileList = getData("Audios");
-                if (!fileList.isEmpty())
-                    adapter.updateData(fileList);
+                storageFileList = getData("Audios");
+                if (!storageFileList.isEmpty())
+                    adapter.updateData(storageFileList);
                 else
                     Toast.makeText(this, "No audio files found", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.btn_video:
-                fileList = getData("Videos");
-                if (!fileList.isEmpty())
-                    adapter.updateData(fileList);
+                storageFileList = getData("Videos");
+                if (!storageFileList.isEmpty())
+                    adapter.updateData(storageFileList);
                 else
                     Toast.makeText(this, "No video files found", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.btn_docs:
-                fileList = getData("Documents");
-                if (!fileList.isEmpty())
-                    adapter.updateData(fileList);
+                storageFileList = getData("Documents");
+                if (!storageFileList.isEmpty())
+                    adapter.updateData(storageFileList);
                 else
                     Toast.makeText(this, "No documents found", Toast.LENGTH_SHORT).show();
                 break;
@@ -118,8 +121,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    private List<File> getData(String type) {
-        List<File> files = new ArrayList<>();
+    private List<StorageFile> getData(String type) {
+        List<StorageFile> storageFiles = new ArrayList<>();
 
 
         Uri contentURI = null;
@@ -166,8 +169,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             DisplayBucketName = MediaStore.Audio.AudioColumns.BUCKET_DISPLAY_NAME;
             FileSizeColumn = MediaStore.Audio.AudioColumns.SIZE;
             whereClause = MediaStore.Audio.AudioColumns.DATA + " like ? ";
-        }
-        else if (type.equals("Videos")) {  //moduleTypes[1] = "Audios"
+        } else if (type.equals("Videos")) {  //moduleTypes[1] = "Audios"
             contentURI = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
             DisplayNameColumn = MediaStore.Video.VideoColumns.DISPLAY_NAME;
             DataColumn = MediaStore.Video.VideoColumns.DATA;
@@ -193,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (cursor != null && cursor.moveToFirst()) {
                 cursor.moveToFirst();
                 do {
-                    File file = new File();
+                    StorageFile storageFile = new StorageFile();
 
                     if (type.equals("Documents")) {
                         String filePath = cursor.getString(
@@ -201,21 +203,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         MediaStore.Images.Media.DATA
                                 ));
                         String[] pathArr = filePath.split("/");
-                        file.setName(pathArr[pathArr.length - 1]); // file name
+                        storageFile.setName(pathArr[pathArr.length - 1]); // file name
                     } else {
-                        file.setName(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)));
+                        storageFile.setName(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)));
                     }
-                    file.setPath(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))); //file path
-                    file.setSize(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE))); //file size
+                    storageFile.setPath(cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))); //file path
+                    storageFile.setSize(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE))); //file size
 
-                    files.add(file);
+                    storageFiles.add(storageFile);
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
             Log.d("Exception", e.getMessage());
             e.printStackTrace();
         }
-        return files;
+        return storageFiles;
     }
 
 
@@ -386,5 +388,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int requestCode = permissionCallbackMap.size() + 1;
         permissionCallbackMap.put(requestCode, callback);
         ActivityCompat.requestPermissions(activity, new String[]{permission}, requestCode);
+    }
+
+    @Override
+    public void onItemClick(StorageFile storageFile) {
+        DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        File file = new File(storageFile.getPath());
+                        if (file.delete()) {
+                            //ACTION_MEDIA_SCANNER_SCAN_FILE not work for shredding because it not delete thumbnail of file
+                            try {
+                                deleteFileFromMediaStore(MainActivity.this.getContentResolver(), file);
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //do nothing
+                        break;
+                    default:
+                        break;
+
+                }
+            }
+        };
+    }
+
+
+    private void deleteFileFromMediaStore(final ContentResolver contentResolver,
+                                          final File file) {
+        String canonicalPath;
+        try {
+            canonicalPath = file.getCanonicalPath();
+        } catch (IOException e) {
+            canonicalPath = file.getAbsolutePath();
+        }
+        final Uri uri = MediaStore.Files.getContentUri("external");
+        final int result = contentResolver.delete(uri,
+                MediaStore.Files.FileColumns.DATA + "=?", new String[]{canonicalPath});
+        if (result == 0) {
+            final String absolutePath = file.getAbsolutePath();
+            contentResolver.delete(uri,
+                    MediaStore.Files.FileColumns.DATA + "=?", new String[]{absolutePath});
+
+        }
     }
 }

@@ -1,13 +1,13 @@
 package com.testapp.models;
 
-public class File {
+public class StorageFile {
     private String name;
     private Long size;
     private String type;
     private String path;
 
 
-    public File() {
+    public StorageFile() {
 
     }
 

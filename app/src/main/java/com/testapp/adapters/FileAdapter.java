@@ -9,20 +9,21 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.testapp.R;
-import com.testapp.models.File;
+import com.testapp.models.StorageFile;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder> {
-    List<File> fileList = new ArrayList<>();
+    List<StorageFile> storageFileList = new ArrayList<>();
+    private OnItemClickListener listener;
 
-    public FileAdapter() {
-//        this.fileList = new ArrayList<>();
+    public FileAdapter(OnItemClickListener listener) {
+        this.listener = listener;
     }
 
-    public void updateData(List<File> files) {
-        this.fileList = files;
+    public void updateData(List<StorageFile> storageFiles) {
+        this.storageFileList = storageFiles;
         notifyDataSetChanged();
     }
 
@@ -38,18 +39,18 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull FileViewHolder holder, int position) {
-        File file = fileList.get(position);
-        holder.name.setText("Name: "+file.getName());
-        holder.size.setText("Size: "+String.valueOf(file.getSize()));
-        holder.path.setText("Path: "+file.getPath());
-        holder.type.setText(file.getType());
+        StorageFile storageFile = storageFileList.get(position);
+        holder.name.setText("Name: " + storageFile.getName());
+        holder.size.setText("Size: " + String.valueOf(storageFile.getSize()));
+        holder.path.setText("Path: " + storageFile.getPath());
+        holder.type.setText(storageFile.getType());
 
     }
 
     @Override
     public int getItemCount() {
-        if (fileList != null && fileList.size() >= 1)
-            return fileList.size();
+        if (storageFileList != null && storageFileList.size() >= 1)
+            return storageFileList.size();
         return 0;
     }
 
@@ -66,6 +67,21 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.FileViewHolder
             size = itemView.findViewById(R.id.txt_size);
             type = itemView.findViewById(R.id.txt_type);
             path = itemView.findViewById(R.id.txt_path);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int pos = getAdapterPosition();
+
+                    if(listener != null && pos != RecyclerView.NO_POSITION)
+                        listener.onItemClick(storageFileList.get(pos));
+                }
+            });
+
         }
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(StorageFile storageFile);
     }
 }
