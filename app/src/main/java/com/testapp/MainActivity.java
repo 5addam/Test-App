@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     "'application/msword' , " +
                     "'application/vnd.ms-excel' , " +
                     "'application/mspowerpoint' ," +
+                    "'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ," +
                     "'application/zip') AND " + MediaStore.Files.FileColumns.DATA + " like ? ";
 
         } else if (type.equals("Images")) {  //moduleTypes[0] = "Images"
